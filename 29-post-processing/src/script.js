@@ -3,6 +3,15 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'dat.gui'
+import { EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass'
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
+
+
 
 /**
  * Base
@@ -103,6 +112,9 @@ window.addEventListener('resize', () =>
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setSize(sizes.width, sizes.height)
 })
 
 /**
@@ -133,6 +145,42 @@ renderer.toneMappingExposure = 1.5
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+// __________________________________
+const renderTarget = new THREE.WebGLMultisampleRenderTarget(
+    800,
+    600,
+    {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        encoding: THREE.sRGBEncoding
+    }
+)
+
+
+const effectComposer = new EffectComposer(renderer, renderTarget)
+
+
+
+const renderPass = new RenderPass(scene, camera)
+effectComposer.addPass(renderPass)
+effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+effectComposer.setSize(sizes.width, sizes.height)
+
+const dotScreenPass = new DotScreenPass()
+dotScreenPass.enabled = false
+effectComposer.addPass(dotScreenPass)
+
+const glitchPass = new GlitchPass()
+glitchPass.goWild = false
+glitchPass.enabled = false
+effectComposer.addPass(glitchPass)
+
+const rgbShiftShader = new ShaderPass(RGBShiftShader)
+rgbShiftShader.enabled = false
+effectComposer.addPass(rgbShiftShader)
+
+
 /**
  * Animate
  */
@@ -146,7 +194,10 @@ const tick = () =>
     controls.update()
 
     // Render
-    renderer.render(scene, camera)
+    // renderer.render(scene, camera)
+
+    effectComposer.render()
+
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
