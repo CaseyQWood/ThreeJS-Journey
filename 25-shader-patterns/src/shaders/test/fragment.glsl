@@ -1,6 +1,6 @@
 varying vec2 vUv;
 uniform sampler2D uTexture;
-#define Pi 3.14159;
+#define Pi = 3.14159;
 
 float random(vec2 st)
 {
@@ -148,7 +148,7 @@ void main()
 
     //Pattern #32
 
-    vec2 rotatedUv = rotate(vUv, Pi * 0.25, vec2(0.5));
+    vec2 rotatedUv = rotate(vUv, 1.0, vec2(0.5));
 
     vec2 lightUvX = vec2(
         rotatedUv.x * 0.1 + 0.45,
